@@ -15,7 +15,7 @@ using namespace cv;
 
 class FrameProcessor {
 private:
-	Mat frame;
+	Mat frame, frame_bw;
 	vector<Mat> cards_mat;
 public:
 	FrameProcessor();

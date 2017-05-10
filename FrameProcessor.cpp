@@ -49,10 +49,8 @@ void FrameProcessor::grab_frame(){
 
 void FrameProcessor::frame_preprocces(){
 
-	// Convert image to grayscale
-	cvtColor(frame, frame, COLOR_BGR2GRAY);
-	// Convert image to binary
-	threshold(frame, frame, 50, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+	cvtColor(frame, frame_bw, COLOR_BGR2GRAY);
+	threshold(frame_bw, frame_bw, 50, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
 	//Canny(frame, frame, 100, 200);
 
@@ -69,7 +67,7 @@ void FrameProcessor::get_card_images(bool debug){
 	  vector<vector<Point> > contours;
 	  vector<Vec4i> hierarchy;
 
-	  findContours( frame, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	  findContours( frame_bw, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
 	  vector<vector<Point> > contours_poly( contours.size() );
 	  vector<Rect> boundRect( contours.size() );
