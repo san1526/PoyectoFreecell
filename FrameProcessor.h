@@ -16,13 +16,14 @@ using namespace cv;
 class FrameProcessor {
 private:
 	Mat frame;
+	vector<Mat> cards_mat;
 public:
 	FrameProcessor();
 	virtual ~FrameProcessor();
 	void grab_frame();
 	void frame_preprocces();
 	void frame_show_debug();
-	void get_card_images();
+	void get_card_images(bool = false);
 };
 
 #endif /* FRAMEPROCESSOR_H_ */

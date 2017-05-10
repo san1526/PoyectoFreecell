@@ -22,7 +22,7 @@ int main(){
 	framer.grab_frame();
 	framer.frame_preprocces();
 	//framer.frame_show_debug();
-	framer.get_card_images();
+	framer.get_card_images(true);
 	return 0;
 
 }

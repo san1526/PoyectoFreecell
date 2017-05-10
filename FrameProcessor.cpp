@@ -22,14 +22,6 @@ using namespace cv;
 
 FrameProcessor::FrameProcessor() {
 	// TODO Auto-generated constructor stub
-	frame = imread("./frame");
-	// Check if image is loaded successfully
-	if(!frame.data || frame.empty())
-	{
-		cout << "Problem loading image!!!" << endl;
-		exit(1);
-	}
-
 }
 
 FrameProcessor::~FrameProcessor() {
@@ -38,12 +30,20 @@ FrameProcessor::~FrameProcessor() {
 
 void FrameProcessor::grab_frame(){
 
-	int status = 0;
 	int pid = fork();
 	if(pid == 0){
 		execl("/usr/bin/gnome-screenshot","-B","-w","-f","frame",(char*) NULL);
 	}
-	while(wait(&status) != pid);
+	waitpid(pid,NULL,0);
+
+	frame = imread("./frame");
+	// Check if image is loaded successfully
+	if(!frame.data || frame.empty())
+	{
+		cout << "Problem loading image!!!" << endl;
+		exit(1);
+	}
+
 	return;
 }
 
@@ -64,7 +64,7 @@ void FrameProcessor::frame_show_debug(){
 	waitKey();
 }
 
-void FrameProcessor::get_card_images(){
+void FrameProcessor::get_card_images(bool debug){
 
 	  vector<vector<Point> > contours;
 	  vector<Vec4i> hierarchy;
@@ -83,23 +83,28 @@ void FrameProcessor::get_card_images(){
 	  for (size_t i = 0; i < contours.size(); ++i) {
 
 		  double area = contourArea(contours[i]);
-		  if (area < 10e2 || 1e5 < area) continue;
-
+		  if (area < 10e2 || 1e5 < area || (area >8000 && area < 9000) || (area > 1500 && area < 2000)) continue;
 		  Mat mask = Mat::zeros(frame.rows, frame.cols, CV_8UC1);
 		  rectangle( mask, boundRect[i].tl(), boundRect[i].br(), Scalar(255), CV_FILLED, 8, 0 );
 
 		  Mat card_img(frame.rows, frame.cols, CV_8UC3);
 		  card_img.setTo(Scalar(0));
 		  frame.copyTo(card_img, mask);
+		  card_img = card_img(boundRect[i]);
 
-		  string file("./img/");
-		  ostringstream stm;
-		  stm << i ;
-		  file.append(stm.str());
-		  file.append(".png");
-		  imwrite(file, card_img);
+		  cards_mat.push_back(card_img);
+
+		if (debug == true) {
+			string file("./img/");
+			ostringstream stm;
+			stm << i ;
+			file.append(stm.str());
+			file.append(".png");
+			imwrite(file, card_img);
+		}
 
 	  }
+
 
 	  return;
 }
