@@ -19,15 +19,15 @@ using namespace std;
 
 class Classifier {
 private:
-	Ptr<SVM> svm;
+	Ptr<KNearest> kne;
 	Mat training_mat;
 	Mat labels;
 public:
 	Classifier();
 	virtual ~Classifier();
 	void create_training_data(string path);
-	void create_svm();
-	void train_svm();
+	void create_clasiffier();
+	void train_clasiffier();
 	void model_load();
 	void get_card_number(Mat input_sample);
 };

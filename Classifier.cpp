@@ -31,7 +31,7 @@ void Classifier::create_training_data(string path){
 	vector<Mat> training_img_vector;
     for (auto & p : fs::directory_iterator(path)){
 
-    	Mat aux_mat = imread(p.path().string());
+    	Mat aux_mat = imread(p.path().string(),0);
     	// Check if image is loaded successfully
     	if(!aux_mat.data || aux_mat.empty())
     	{
@@ -41,49 +41,44 @@ void Classifier::create_training_data(string path){
     	training_img_vector.push_back(aux_mat);
     }
 
-    training_mat = Mat(training_img_vector.size(),(training_img_vector[0].rows * training_img_vector[0].cols),CV_32FC1);
-    int img = 0;
     for (auto a : training_img_vector) {
-    	int ii = 0; // Current column in training_mat
-    	for (int i = 0; i<a.rows; i++) {
-    	    for (int j = 0; j < a.cols; j++) {
-    	        training_mat.at<float>(img,ii++) = a.at<uchar>(i,j);
-    	    }
-    	}
-		img++;
+    	Mat float_data;
+    	a.convertTo(float_data,CV_32F);
+    	training_mat.push_back(float_data.reshape(0, 1));
     }
-
     int labels_data[] = {0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1};//labels hardcoded for now CHANGE THIS
-    labels = Mat(training_mat.rows,1,CV_32SC1,labels_data);
-    //training_mat.convertTo(training_mat,CV_32FC1);
+    labels = Mat(training_mat.rows,1,CV_32S,labels_data);
 
 	return;
 }
 
-void Classifier::create_svm(){
+void Classifier::create_clasiffier(){
 
-	svm = SVM::create();
-	svm->setType(SVM::C_SVC);
-	svm->setKernel(SVM::RBF);
-	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 1000000, 1e-6));
+	kne = KNearest::create();
+	kne->setDefaultK(10);
+
 	return;
 }
 
-void Classifier::train_svm(){
-
-	svm->train(training_mat, ROW_SAMPLE, labels);
-	cout << "SVM IS TRAINED : " << svm->isTrained() << " " << svm->isClassifier() << endl;
-	svm->save("classifier_model");
-
+void Classifier::train_clasiffier(){
+	Mat nMat(0,0,CV_32F);
+	training_mat.convertTo(nMat,CV_32F);
+	kne->train(nMat, ROW_SAMPLE, labels);
+	kne->save("kne-model");
+	//TODO : add save function
 	return;
 }
 
 void Classifier::model_load(){
-	svm->load("classifier_model");
-	cout << svm->isTrained() << endl;
+
+	//kne->load("kne-model");
+	//TODO : add load function
+
+	return;
 }
 
 void Classifier::get_card_number(Mat input_sample){
-	float f = svm->predict(input_sample);
-	cout << "PREDICIOTN IS : " << f << endl;
+	Mat results(0,0,CV_32S);
+	kne->findNearest(input_sample,kne->getDefaultK(),results);
+	cout << "PREDICIOTN IS : " << results << endl;
 }

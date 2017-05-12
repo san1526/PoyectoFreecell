@@ -92,17 +92,26 @@ void FrameProcessor::get_card_images(bool debug){
 
 		  cards_mat.push_back(card_img);
 
-		if (debug == true) {
-			string file("./img/");
-			ostringstream stm;
-			stm << i ;
-			file.append(stm.str());
-			file.append(".png");
-			imwrite(file, card_img);
-		}
+		  if (debug == true) {
+			  string file("./img/");
+			  ostringstream stm;
+			  stm << i ;
+			  file.append(stm.str());
+			  file.append(".png");
+			  imwrite(file, card_img);
+		  }
 
 	  }
 
 
 	  return;
+}
+
+Mat FrameProcessor::get_sample(int i){
+	imshow("DEBIG", cards_mat[i]);
+	waitKey();
+	Mat float_data;
+	cards_mat[i].convertTo(float_data,CV_32F);
+	cvtColor(float_data, float_data, CV_RGB2GRAY);
+	return 	float_data.reshape(0, 1);;
 }

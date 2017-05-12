@@ -24,6 +24,7 @@ public:
 	void frame_preprocces();
 	void frame_show_debug();
 	void get_card_images(bool = false);
+	Mat get_sample(int); //TEMPORAL FUNCTION FOR DEBUG
 };
 
 #endif /* FRAMEPROCESSOR_H_ */
