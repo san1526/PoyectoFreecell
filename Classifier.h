@@ -8,6 +8,7 @@
 #ifndef CLASSIFIER_H_
 #define CLASSIFIER_H_
 
+#include "Card.h"
 #include <string>
 
 #include <opencv2/opencv.hpp>
@@ -19,17 +20,13 @@ using namespace std;
 
 class Classifier {
 private:
-	Ptr<SVM> svm;
-	Mat training_mat;
-	Mat labels;
+	vector<Card> cards;
 public:
 	Classifier();
 	virtual ~Classifier();
-	void create_training_data(string path);
-	void create_svm();
-	void train_svm();
-	void model_load();
-	void get_card_number(Mat input_sample);
+	void get_base_data(string = "./numbers");
+	string cmp_hist(Mat);
+	void make_board(vector<Mat> cards_vec);
 };
 
 #endif /* CLASSIFIER_H_ */
