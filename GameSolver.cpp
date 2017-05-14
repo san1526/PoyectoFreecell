@@ -23,12 +23,17 @@ GameSolver::~GameSolver() {
 	// TODO Auto-generated destructor stub
 }
 
+void GameSolver::set_window(int in){
+	window = in;
+	return;
+}
+
 void GameSolver::mouse_move_and_click(int x, int y){
 
-	string command = "xdotool mousemove";
+	string command = "xdotool mousemove --sync ";
 	string click = "xdotool click 1";
 	char buff[20] = {'\0'};
-	sprintf(buff," %d %d",x,y);
+	sprintf(buff,"%d %d",x,y);
 	command.append(buff);
 
 	int pid = fork();
@@ -36,31 +41,45 @@ void GameSolver::mouse_move_and_click(int x, int y){
 		execl("/bin/bash","sh","-c",command.c_str(),(char*)NULL);
 	}
 	waitpid(pid, NULL, 0);
-	usleep(10000);
+
+	pid = fork();
+	if(pid == 0){
+		execl("/bin/bash", "sh", "-c", "xdotool search --name \"^Freecell$\" windowactivate --sync", (char*)NULL);
+	}
+	waitpid(pid , NULL, 0);
+	usleep(1000);
 	pid = fork();
 	if(pid == 0){
 		execl("/bin/bash", "sh", "-c", click.c_str(), (char*)NULL);
 	}
 	waitpid(pid , NULL, 0);
-	//usleep(1000);
+	usleep(1000);
 	return;
 }
 
 
-void GameSolver::move_to_foundation(int card){
+void GameSolver::move_to_foundation(int card, char from){
 
-	for (int i = 0; i < 4; i++) {
-		mouse_move_and_click(stacks[card].x , stacks[card].y + stacks_n[card] * 30);
-		mouse_move_and_click(foundation[i].x, foundation[i].y);
+	if (from == 'f') {
+		for (int i = 0; i < 4; i++) {
+			mouse_move_and_click(freecell[card].x , freecell[card].y);
+			mouse_move_and_click(foundation[i].x, foundation[i].y);
+		}
 	}
-	stacks_n[card]--;
+	else if(from == 's'){
+		for (int i = 0; i < 4; i++) {
+			mouse_move_and_click(stacks[card].x , stacks[card].y + stacks_n[card] * 33);
+			mouse_move_and_click(foundation[i].x, foundation[i].y);
+		}
+		stacks_n[card] =  stacks_n[card] -1;
+	}
 
 	return;
 }
 
 void GameSolver::move_to_freecell(int card, int frcl){
 
-	mouse_move_and_click(stacks[card].x, stacks[card].y + stacks_n[card] * 30 );
+	mouse_move_and_click(stacks[card].x, stacks[card].y + stacks_n[card] * 33);
 	mouse_move_and_click(freecell[frcl].x, freecell[frcl].y);
 	stacks_n[card] = stacks_n[card] - 1;
 
@@ -69,7 +88,7 @@ void GameSolver::move_to_freecell(int card, int frcl){
 
 void GameSolver::move_to_stack(int card, int to, int n){
 
-	mouse_move_and_click(stacks[card].x, stacks[card].y + (stacks_n[card] - n) * 30);
+	mouse_move_and_click(stacks[card].x, stacks[card].y + (stacks_n[card] - n) * 33);
 	mouse_move_and_click(stacks[to].x, stacks[to].y);
 	stacks_n[card] = stacks_n[card] - n;
 	stacks_n[to] = stacks_n[to] + n;
@@ -82,7 +101,7 @@ void GameSolver::move_from_freecell(int n, int to){
 
 	mouse_move_and_click(freecell[n].x, freecell[n].y);
 	mouse_move_and_click(stacks[to].x, stacks[to].y + stacks_n[to] * 35);
-	stacks_n[to] = stacks_n[to] + n;
+	stacks_n[to] = stacks_n[to] + 1;
 
 	return;
 
@@ -146,8 +165,11 @@ void GameSolver::try_solve(){
 
 	for(auto stp : steps){
 
-		if(step_ctn == 9)
+		if(step_ctn == 9){
+			n = 0, from = 0, to_n = 0;
+			from_c = '\0', to_c = '\0';
 			step_ctn = 0;
+		}
 
 		switch (step_ctn){
 
@@ -183,11 +205,12 @@ void GameSolver::try_solve(){
 				to_n = 0;
 			else
 				to_n = atoi(stp.c_str());
+			break;
 
 		}
 
 		if(step_ctn == 8){
-			cout << "move " << n << " from " << from_c << " n: " << from << " to " << to_c << " n: " << to_n <<endl;
+			cout << "move " << n << " => " << from_c << from << " to " << to_c << to_n <<endl;
 
 			if(from_c == 's' && to_c == 's'){
 				move_to_stack(from, to_n, n);
@@ -198,9 +221,11 @@ void GameSolver::try_solve(){
 			else if(from_c == 'f' && to_c == 's'){
 				move_from_freecell(from, to_n);
 			}
-			else if(to_c == 'n'){
-				move_to_foundation(from);
-
+			else if(from_c == 'f' && to_c == 'n'){
+				move_to_foundation(from, 'f');
+			}
+			else if(from_c == 's' && to_c == 'n'){
+				move_to_foundation(from, 's');
 			}
 		}
 		step_ctn++;
