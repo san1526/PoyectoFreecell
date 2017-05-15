@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
 	cls.get_base_data();
 	//cls.cmp_hist(framer.get_sample(atoi(argv[1])));
 	cls.make_board(framer.get_cards_vector());
-	solver.set_window(game.get_window());
+	solver.set_window();
 	solver.make_solution();
 	solver.solution_parser();
 	solver.try_solve();

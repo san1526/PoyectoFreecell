@@ -13,6 +13,9 @@
 #include <iostream>
 #include <sstream>
 #include <string.h>
+#include <suinput.h>
+
+#include <X11/extensions/XTest.h>.h>
 
 GameSolver::GameSolver() {
 	// TODO Auto-generated constructor stub
@@ -23,37 +26,31 @@ GameSolver::~GameSolver() {
 	// TODO Auto-generated destructor stub
 }
 
-void GameSolver::set_window(int in){
-	window = in;
+void GameSolver::set_window(){
 	return;
 }
 
 void GameSolver::mouse_move_and_click(int x, int y){
 
-	string command = "xdotool mousemove --sync ";
-	string click = "xdotool click 1";
-	char buff[20] = {'\0'};
-	sprintf(buff,"%d %d",x,y);
-	command.append(buff);
+	//cout << "X: " << x << " Y: " << y << '\n';
 
-	int pid = fork();
-	if(pid == 0){
-		execl("/bin/bash","sh","-c",command.c_str(),(char*)NULL);
-	}
-	waitpid(pid, NULL, 0);
+	Display *dpy = NULL;
+	XEvent event;
+	dpy = XOpenDisplay (NULL);
+	/* Get the current pointer position */
+	XQueryPointer (dpy, RootWindow (dpy, 0), &event.xbutton.root,
+			&event.xbutton.window, &event.xbutton.x_root,
+			&event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
+			&event.xbutton.state);
 
-	pid = fork();
-	if(pid == 0){
-		execl("/bin/bash", "sh", "-c", "xdotool search --name \"^Freecell$\" windowactivate --sync", (char*)NULL);
-	}
-	waitpid(pid , NULL, 0);
-	usleep(1000);
-	pid = fork();
-	if(pid == 0){
-		execl("/bin/bash", "sh", "-c", click.c_str(), (char*)NULL);
-	}
-	waitpid(pid , NULL, 0);
-	usleep(1000);
+	/* Fake the pointer movement to new absolate position */
+	XTestFakeMotionEvent (dpy, 0, x, y, CurrentTime);
+
+	/* Fake the mouse button Press and Release events */
+	XTestFakeButtonEvent (dpy, 1, True,  CurrentTime);
+	XTestFakeButtonEvent (dpy, 1, False, CurrentTime);
+	XCloseDisplay (dpy);
+
 	return;
 }
 
@@ -68,7 +65,7 @@ void GameSolver::move_to_foundation(int card, char from){
 	}
 	else if(from == 's'){
 		for (int i = 0; i < 4; i++) {
-			mouse_move_and_click(stacks[card].x , stacks[card].y + stacks_n[card] * 33);
+			mouse_move_and_click(stacks[card].x , stacks[card].y + stacks_n[card] * 32);
 			mouse_move_and_click(foundation[i].x, foundation[i].y);
 		}
 		stacks_n[card] =  stacks_n[card] -1;
@@ -79,7 +76,7 @@ void GameSolver::move_to_foundation(int card, char from){
 
 void GameSolver::move_to_freecell(int card, int frcl){
 
-	mouse_move_and_click(stacks[card].x, stacks[card].y + stacks_n[card] * 33);
+	mouse_move_and_click(stacks[card].x, stacks[card].y + stacks_n[card] * 32);
 	mouse_move_and_click(freecell[frcl].x, freecell[frcl].y);
 	stacks_n[card] = stacks_n[card] - 1;
 
@@ -88,7 +85,7 @@ void GameSolver::move_to_freecell(int card, int frcl){
 
 void GameSolver::move_to_stack(int card, int to, int n){
 
-	mouse_move_and_click(stacks[card].x, stacks[card].y + (stacks_n[card] - n) * 33);
+	mouse_move_and_click(stacks[card].x, stacks[card].y + (stacks_n[card] - n) * 32);
 	mouse_move_and_click(stacks[to].x, stacks[to].y);
 	stacks_n[card] = stacks_n[card] - n;
 	stacks_n[to] = stacks_n[to] + n;
@@ -102,14 +99,14 @@ void GameSolver::move_from_freecell(int n, int to){
 	mouse_move_and_click(freecell[n].x, freecell[n].y);
 	mouse_move_and_click(stacks[to].x, stacks[to].y + stacks_n[to] * 35);
 	stacks_n[to] = stacks_n[to] + 1;
-
+	mouse_move_and_click(855,63);
 	return;
 
 }
 
 void GameSolver::make_solution(){
 
-	string command = "fc-solve -m -o solution board";
+	string command = "fc-solve -opt -me random-dfs -to 013[2456789ABCDE] -m -o solution board";
 
 	int pid = fork();
 	if(pid == 0){
@@ -210,7 +207,7 @@ void GameSolver::try_solve(){
 		}
 
 		if(step_ctn == 8){
-			cout << "move " << n << " => " << from_c << from << " to " << to_c << to_n <<endl;
+			cout << "move " << n << " => " << from_c << from << " to " << to_c << to_n << endl;
 
 			if(from_c == 's' && to_c == 's'){
 				move_to_stack(from, to_n, n);

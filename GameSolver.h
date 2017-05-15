@@ -12,6 +12,9 @@
 #include <stack>
 #include <vector>
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 using namespace std;
 
 typedef struct coords{
@@ -26,12 +29,12 @@ private:
 	vector<coords_t> stacks {{56,306},{165,306},{288,306},{391,306},{508,306},{617,306},{727,306},{829,306}};
 	vector<int> stacks_n {7,7,7,7,6,6,6,6};
 	vector<string> steps;
-	int window = 0;
+	void mouseClick(int);
 public:
 
 	GameSolver();
 	virtual ~GameSolver();
-	void set_window(int);
+	void set_window();
 	void mouse_move_and_click(int ,int);
 	void move_to_stack(int, int, int);
 	void move_to_freecell(int, int);
