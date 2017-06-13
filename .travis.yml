@@ -1,5 +1,7 @@
 language: C++
+
 script: make
+
 before_script:
   - git clone https://github.com/Itseez/opencv.git
   - cd opencv
@@ -9,3 +11,6 @@ before_script:
   - make -j4
   - sudo make -j4 install
   - cd ../..
+
+install:
+  - sudo apt-get install python-dev python-numpy
