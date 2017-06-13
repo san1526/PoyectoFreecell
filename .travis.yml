@@ -1,3 +1,11 @@
 language: C++
 script: make
-before_script: sudo apt-get install libopencv-dev
+before_script:
+  - git clone https://github.com/Itseez/opencv.git
+  - cd opencv
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make -j4
+  - sudo make -j4 install
+  - cd ../..
